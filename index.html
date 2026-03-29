@@ -3,46 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Generator Administrasi Guru</title>
+    <title>AI Generator Administrasi Guru - Bondowoso</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        .prose table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        .prose th, .prose td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .prose th { background-color: #f3f4f6; }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-100 text-gray-800 font-sans">
 
-    <div class="max-w-4xl mx-auto p-6">
+    <div class="max-w-5xl mx-auto p-4 md:p-8">
         <header class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-blue-600">AI Administrasi Kurikulum</h1>
-            <p class="text-gray-500 text-sm">Generate Prota, Promes, ATP, hingga Modul Ajar secara otomatis.</p>
+            <h1 class="text-4xl font-extrabold text-blue-700">AI Administrasi Kurikulum</h1>
+            <p class="text-gray-600 mt-2">Otomasi CP, TP, ATP, Prota, Promes, & Modul Ajar</p>
         </header>
 
-        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Mata Pelajaran</label>
-                    <input type="text" id="mapel" placeholder="Contoh: Informatika" class="w-full border rounded p-2">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Fase / Kelas</label>
-                    <input type="text" id="fase" placeholder="Contoh: Fase E / Kelas 10" class="w-full border rounded p-2">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-fit">
+                <h2 class="text-lg font-bold mb-4 border-b pb-2">Konfigurasi</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-500">Mata Pelajaran</label>
+                        <input type="text" id="mapel" placeholder="Informatika / RPL" class="w-full border rounded-lg p-2 mt-1 focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-500">Fase / Kelas</label>
+                        <input type="text" id="fase" placeholder="Fase E / Kelas 10" class="w-full border rounded-lg p-2 mt-1 focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-500">Capaian Pembelajaran (CP)</label>
+                        <textarea id="cpText" rows="8" placeholder="Tempel teks CP di sini..." class="w-full border rounded-lg p-2 mt-1 text-sm focus:ring-2 focus:ring-blue-400 outline-none"></textarea>
+                    </div>
+                    
+                    <button onclick="generateAI()" id="btnGenerate" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition-all active:scale-95">
+                        Generate Sekarang
+                    </button>
                 </div>
             </div>
 
-            <div class="mb-4">
-                <label class="block text-sm font-semibold mb-1">Salin Teks CP (Capaian Pembelajaran)</label>
-                <textarea id="cpText" rows="5" placeholder="Tempel teks CP dari BSKAP di sini..." class="w-full border rounded p-2 text-sm"></textarea>
-            </div>
-
-            <button onclick="generateAI()" id="btnGenerate" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded transition">
-                Generate Administrasi Lengkap
-            </button>
-        </div>
-
-        <div id="outputContainer" class="hidden bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-500">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">Hasil Generate AI</h2>
-                <button onclick="copyToClipboard()" class="text-blue-500 text-sm font-medium hover:underline text-xs">Salin Markdown</button>
-            </div>
-            <div id="resultContent" class="prose max-w-none text-sm leading-relaxed whitespace-pre-wrap">
+            <div class="lg:col-span-2 space-y-4">
+                <div id="loading" class="hidden text-center p-10 bg-white rounded-xl shadow-md">
+                    <div class="animate-spin inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mb-2"></div>
+                    <p class="text-gray-500 animate-pulse">AI sedang menyusun dokumen Anda...</p>
                 </div>
+
+                <div id="outputContainer" class="hidden bg-white p-8 rounded-xl shadow-lg border-t-8 border-blue-600">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-700">Hasil Dokumen</h2>
+                        <button onclick="window.print()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow">
+                            Cetak / Save PDF
+                        </button>
+                    </div>
+                    <div id="resultContent" class="prose max-w-none prose-blue">
+                        </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -51,47 +69,67 @@
             const mapel = document.getElementById('mapel').value;
             const fase = document.getElementById('fase').value;
             const cpText = document.getElementById('cpText').value;
+            
             const btn = document.getElementById('btnGenerate');
+            const loading = document.getElementById('loading');
             const output = document.getElementById('outputContainer');
             const resultDiv = document.getElementById('resultContent');
 
-            if (!mapel || !cpText) return alert("Mohon isi Mapel dan CP!");
+            if (!mapel || !cpText) {
+                alert("Mohon lengkapi Nama Mapel dan teks CP!");
+                return;
+            }
 
-            // Efek Loading
-            btn.innerText = "Sedang Memproses (Mungkin butuh 30-60 detik)...";
+            // Ganti ini dengan API Key Anda
+            const API_KEY = "AIzaSyCjbG2xx-M-BcKikmDHix2maE9K17yBEOA"; 
+            const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
+            // Persiapan UI
             btn.disabled = true;
+            loading.classList.remove('hidden');
+            output.classList.add('hidden');
 
-            // Logic Prompt (Pondasi instruksi untuk AI)
-            const prompt = `Anda adalah ahli kurikulum Merdeka. Buatkan dokumen lengkap untuk Mapel ${mapel} ${fase} berdasarkan CP berikut: ${cpText}. 
-            Output harus mencakup: 
-            1. Analisis CP ke TP. 
-            2. Urutan ATP. 
-            3. Tabel Prota. 
-            4. Tabel Promes (Estimasi 18 minggu). 
-            5. Satu draf Modul Ajar. 
-            Gunakan format Markdown yang rapi dengan heading dan tabel.`;
+            const promptText = `
+                Anda adalah pakar kurikulum Merdeka di Indonesia. 
+                Buatkan administrasi lengkap untuk mata pelajaran ${mapel} di ${fase}.
+                Input CP: ${cpText}
+
+                Susunlah secara urut dan lengkap:
+                1. Analisis CP menjadi beberapa Tujuan Pembelajaran (TP).
+                2. Alur Tujuan Pembelajaran (ATP) yang disusun secara logis.
+                3. Program Tahunan (Prota) dalam bentuk tabel alokasi JP.
+                4. Program Semester (Promes) ganjil/genap dalam bentuk tabel.
+                5. Satu contoh Modul Ajar (Rencana Aksi) yang mencakup tujuan, langkah, dan asesmen.
+
+                Gunakan Bahasa Indonesia yang formal dan profesional. Gunakan format Markdown (Tabel, Bold, Heading) agar rapi.
+            `;
 
             try {
-                // DI SINI: Tempat Anda memanggil API (Gemini/OpenAI)
-                // Sementara kita simulasikan teks muncul:
-                setTimeout(() => {
-                    output.classList.remove('hidden');
-                    resultDiv.innerText = "Hasil generate simulasi: \\n1. TP: Siswa mampu memahami... \\n2. ATP: Mengenal komponen... \\n(Di sini nanti muncul data asli dari API)";
-                    btn.innerText = "Generate Administrasi Lengkap";
-                    btn.disabled = false;
-                    window.scrollTo(0, document.body.scrollHeight);
-                }, 2000);
+                const response = await fetch(ENDPOINT, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: promptText }] }]
+                    })
+                });
+
+                const data = await response.json();
+                const aiText = data.candidates[0].content.parts[0].text;
+
+                // Render Markdown ke HTML
+                resultDiv.innerHTML = marked.parse(aiText);
+                
+                loading.classList.add('hidden');
+                output.classList.remove('hidden');
+                window.scrollTo({ top: output.offsetTop, behavior: 'smooth' });
 
             } catch (error) {
-                alert("Terjadi kesalahan koneksi!");
+                console.error(error);
+                alert("Gagal menghubungi AI. Pastikan koneksi internet stabil atau cek kuota API Key.");
+                loading.classList.add('hidden');
+            } finally {
                 btn.disabled = false;
             }
-        }
-
-        function copyToClipboard() {
-            const text = document.getElementById('resultContent').innerText;
-            navigator.clipboard.writeText(text);
-            alert("Berhasil disalin!");
         }
     </script>
 </body>
