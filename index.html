@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Generator Administrasi Guru</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="max-w-4xl mx-auto p-6">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-blue-600">AI Administrasi Kurikulum</h1>
+            <p class="text-gray-500 text-sm">Generate Prota, Promes, ATP, hingga Modul Ajar secara otomatis.</p>
+        </header>
+
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Mata Pelajaran</label>
+                    <input type="text" id="mapel" placeholder="Contoh: Informatika" class="w-full border rounded p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Fase / Kelas</label>
+                    <input type="text" id="fase" placeholder="Contoh: Fase E / Kelas 10" class="w-full border rounded p-2">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-semibold mb-1">Salin Teks CP (Capaian Pembelajaran)</label>
+                <textarea id="cpText" rows="5" placeholder="Tempel teks CP dari BSKAP di sini..." class="w-full border rounded p-2 text-sm"></textarea>
+            </div>
+
+            <button onclick="generateAI()" id="btnGenerate" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded transition">
+                Generate Administrasi Lengkap
+            </button>
+        </div>
+
+        <div id="outputContainer" class="hidden bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-500">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Hasil Generate AI</h2>
+                <button onclick="copyToClipboard()" class="text-blue-500 text-sm font-medium hover:underline text-xs">Salin Markdown</button>
+            </div>
+            <div id="resultContent" class="prose max-w-none text-sm leading-relaxed whitespace-pre-wrap">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        async function generateAI() {
+            const mapel = document.getElementById('mapel').value;
+            const fase = document.getElementById('fase').value;
+            const cpText = document.getElementById('cpText').value;
+            const btn = document.getElementById('btnGenerate');
+            const output = document.getElementById('outputContainer');
+            const resultDiv = document.getElementById('resultContent');
+
+            if (!mapel || !cpText) return alert("Mohon isi Mapel dan CP!");
+
+            // Efek Loading
+            btn.innerText = "Sedang Memproses (Mungkin butuh 30-60 detik)...";
+            btn.disabled = true;
+
+            // Logic Prompt (Pondasi instruksi untuk AI)
+            const prompt = `Anda adalah ahli kurikulum Merdeka. Buatkan dokumen lengkap untuk Mapel ${mapel} ${fase} berdasarkan CP berikut: ${cpText}. 
+            Output harus mencakup: 
+            1. Analisis CP ke TP. 
+            2. Urutan ATP. 
+            3. Tabel Prota. 
+            4. Tabel Promes (Estimasi 18 minggu). 
+            5. Satu draf Modul Ajar. 
+            Gunakan format Markdown yang rapi dengan heading dan tabel.`;
+
+            try {
+                // DI SINI: Tempat Anda memanggil API (Gemini/OpenAI)
+                // Sementara kita simulasikan teks muncul:
+                setTimeout(() => {
+                    output.classList.remove('hidden');
+                    resultDiv.innerText = "Hasil generate simulasi: \\n1. TP: Siswa mampu memahami... \\n2. ATP: Mengenal komponen... \\n(Di sini nanti muncul data asli dari API)";
+                    btn.innerText = "Generate Administrasi Lengkap";
+                    btn.disabled = false;
+                    window.scrollTo(0, document.body.scrollHeight);
+                }, 2000);
+
+            } catch (error) {
+                alert("Terjadi kesalahan koneksi!");
+                btn.disabled = false;
+            }
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('resultContent').innerText;
+            navigator.clipboard.writeText(text);
+            alert("Berhasil disalin!");
+        }
+    </script>
+</body>
+</html>
